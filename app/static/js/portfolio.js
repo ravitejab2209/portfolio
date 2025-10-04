@@ -49,6 +49,9 @@ class PortfolioChatbot {
             this.openModal();
         });
         
+        // Mobile keyboard handling
+        this.setupKeyboardHandling();
+        
         this.floatingBtn.addEventListener('touchstart', (e) => {
             console.log('Floating button touched!');
             e.preventDefault();
@@ -434,4 +437,54 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
         console.error('❌ Error creating chatbot:', error);
     }
-}); 
+});
+
+// Add keyboard handling method to PortfolioChatbot class
+PortfolioChatbot.prototype.setupKeyboardHandling = function() {
+    if (!this.chatModal || !this.chatInput) return;
+    
+    let keyboardOpen = false;
+    let initialViewportHeight = window.innerHeight;
+    
+    // Handle keyboard open/close
+    const handleKeyboardChange = () => {
+        const currentHeight = window.innerHeight;
+        const heightDifference = initialViewportHeight - currentHeight;
+        
+        if (heightDifference > 150) { // Keyboard is likely open
+            if (!keyboardOpen) {
+                keyboardOpen = true;
+                this.chatModal.classList.remove('keyboard-closed');
+                this.chatModal.classList.add('keyboard-open');
+                console.log('📱 Keyboard opened - adjusting chat modal');
+            }
+        } else { // Keyboard is likely closed
+            if (keyboardOpen) {
+                keyboardOpen = false;
+                this.chatModal.classList.remove('keyboard-open');
+                this.chatModal.classList.add('keyboard-closed');
+                console.log('📱 Keyboard closed - adjusting chat modal');
+            }
+        }
+    };
+    
+    // Listen for viewport changes (keyboard events)
+    window.addEventListener('resize', handleKeyboardChange);
+    
+    // Listen for input focus/blur
+    this.chatInput.addEventListener('focus', () => {
+        setTimeout(handleKeyboardChange, 300); // Delay to allow keyboard animation
+    });
+    
+    this.chatInput.addEventListener('blur', () => {
+        setTimeout(handleKeyboardChange, 300); // Delay to allow keyboard animation
+    });
+    
+    // Handle orientation changes
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            initialViewportHeight = window.innerHeight;
+            handleKeyboardChange();
+        }, 500);
+    });
+}; 

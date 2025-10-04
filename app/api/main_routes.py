@@ -11,6 +11,15 @@ def index():
     """Serve the main portfolio page"""
     return render_template('portfolio.html')
 
+@main_bp.route('/health')
+def health_check():
+    """Health check endpoint for Railway"""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'Portfolio app is running',
+        'version': '1.0.0'
+    }), 200
+
 @main_bp.route('/download-resume')
 def download_resume():
     """Download resume file"""

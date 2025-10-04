@@ -6,7 +6,6 @@ Run this file to start the portfolio server
 
 import os
 from app import create_app
-from app.utils.ai_clients import get_ai_manager
 
 def check_setup():
     """Check API configuration and dependencies"""
@@ -67,17 +66,23 @@ def main():
     print(f"   Debug: {debug_mode}")
     
     try:
-        with app.app_context():
-            # Initialize AI manager with app context
-            ai_manager = get_ai_manager(app)
-            ai_manager.init_app(app)
-            print("✅ AI Manager initialized")
-            
-            # Debug status (only in development)
-            if not is_production:
-                ai_manager.debug_status()
+        # Initialize AI manager in a non-blocking way
+        try:
+            from app.utils.ai_clients import get_ai_manager
+            with app.app_context():
+                ai_manager = get_ai_manager(app)
+                ai_manager.init_app(app)
+                print("✅ AI Manager initialized")
+                
+                # Debug status (only in development)
+                if not is_production:
+                    ai_manager.debug_status()
+        except Exception as ai_error:
+            print(f"⚠️  AI Manager initialization failed: {ai_error}")
+            print("   App will continue with fallback responses")
         
         # Start the server
+        print(f"🌐 Server starting at http://{host}:{port}")
         app.run(
             debug=debug_mode,
             host=host,
@@ -90,6 +95,8 @@ def main():
         if not is_production:
             import traceback
             traceback.print_exc()
+        # Exit with error code for Railway to detect failure
+        exit(1)
 
 if __name__ == '__main__':
     main() 
